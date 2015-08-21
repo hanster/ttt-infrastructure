@@ -1,0 +1,12 @@
+{
+  "name": "web_app_staging1",
+  "run_list": [
+    "role[web_app]"
+  ] ,
+  "ttt-ruby": {
+    "web_app": {
+      "user_home": "/home/ubuntu/",
+      "user_name": "ubuntu"
+    }
+  }
+}

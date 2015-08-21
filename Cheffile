@@ -6,7 +6,11 @@ site 'https://supermarket.getchef.com/api/v1'
 cookbook 'apt'
 cookbook 'ssh'
 cookbook 'build-essential'
-cookbook 'ruby_build'
+cookbook 'ark'
+cookbook 'ruby_build',
+  :git => "https://github.com/mojolingo/chef-ruby_build",
+  :ref => "ruby-2.1.0"
+cookbook 'chruby'
 
 # cookbook 'chef-client'
 

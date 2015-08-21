@@ -9,11 +9,10 @@
 
 user_home       = node['ttt-ruby']['web_app']['user_home']
 user_name       = node['ttt-ruby']['web_app']['user_name']
-app_user        = "vagrant"
+app_git_repo    = 'git@github.com:hanster/tic-tac-toe-web.git'
 app_name        = 'ttt-ruby'
 app_home        = user_home + app_name
-ruby_version    = '2.2.2'
-ruby_path       = user_home + '.rubies/' + ruby_version
+thin_pid_file   = 'tmp/pids/thin.pid'
 
 directory user_home do
   owner user_name
@@ -38,35 +37,34 @@ ssh_known_hosts 'github.com' do
   user user_name
 end
 
+bash "stop the server" do
+  user user_name
+  cwd app_home
+  code "/usr/local/bin/chruby-exec 2.2.2 -- 'bundle exec thin -P #{thin_pid_file} stop'"
+  only_if { File.exists? app_home + '/' + thin_pid_file }
+end
+
 git app_home do
-  repository "git@github.com:hanster/tic-tac-toe-web.git"
+  repository app_git_repo
   reference "master"
-  user app_user
+  user user_name
   action :sync
 end
 
-%w[build-essential bison openssl libreadline6 libreadline6-dev
-  zlib1g zlib1g-dev libssl-dev libyaml-dev].each do |p|
-    package p
-  end
-
-ruby_build_ruby ruby_version do
-  prefix_path ruby_path
-  environment 'RUBY_CONFIGURE_OPTS' => '--disable-install-doc'
-  user app_user
-  group app_user
+bash "install bundler" do
+  user user_name
+  code "/usr/local/bin/chruby-exec 2.2.2 -- 'gem install bundler'"
 end
 
-link "/usr/bin/ruby" do
-  to ruby_path + "/bin/ruby"
+bash "install dependencies" do
+  user user_name
+  cwd app_home
+  code "/usr/local/bin/chruby-exec 2.2.2 -- 'bundle install'"
 end
 
-#
-#gem_package "bundler"
-#
-#bash "install dependencies" do
-#  user app_user
-#  cwd app_home
-#  code "bundle install --path=vendor/bundle"
-#end
+bash "run the server" do
+  user user_name
+  cwd app_home
+  code "/usr/local/bin/chruby-exec 2.2.2 -- 'bundle exec thin -P #{thin_pid_file} -l logs/thin.log -d start'"
+end
 
